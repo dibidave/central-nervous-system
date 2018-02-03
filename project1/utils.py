@@ -2,8 +2,7 @@ import numpy
 from sklearn.model_selection import train_test_split
 from keras.utils.np_utils import to_categorical
 
-
-def get_training_data(validation_size=0.3):
+def get_training_data(validation_size=0.3, onehot=1):
     """
     Loads the training data, splits it into training and validation sets, and
     converts the labels into 2-class one-hot encoding
@@ -21,9 +20,10 @@ def get_training_data(validation_size=0.3):
 
     training_features, validation_features, training_labels, validation_labels = \
         train_test_split(features, labels, test_size=validation_size)
-
-    training_labels = to_categorical(training_labels)
-    validation_labels = to_categorical(validation_labels)
+    if onehot:
+        training_labels = to_categorical(training_labels)
+        validation_labels = to_categorical(validation_labels)
 
     return (training_features, training_labels,
             validation_features, validation_labels)
+
