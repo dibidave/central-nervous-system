@@ -1,6 +1,5 @@
 import numpy
 from sklearn.model_selection import train_test_split
-from keras.utils.np_utils import to_categorical
 
 def get_training_data(validation_size=0.3, onehot=1):
     """
@@ -23,6 +22,7 @@ def get_training_data(validation_size=0.3, onehot=1):
         train_test_split(features, labels, test_size=validation_size)
 
     if onehot:
+        from keras.utils.np_utils import to_categorical
         training_labels = to_categorical(training_labels)
         validation_labels = to_categorical(validation_labels)
 
