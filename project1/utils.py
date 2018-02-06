@@ -29,3 +29,20 @@ def get_training_data(validation_size=0.3, onehot=1):
     return (training_features, training_labels,
             validation_features, validation_labels)
 
+def get_test_data():
+    """
+    Loads the training data, splits it into training and validation sets, and
+    converts the labels into 2-class one-hot encoding
+
+    :param validation_size: What ratio of the dataset to use as training data
+    :param use_one_hot_encoding: Whether to use one hot encoding
+    :return: (training_features, training_labels,
+        validation_features, validation_labels)
+    """
+
+    data = numpy.loadtxt(
+        "data/test_data.txt", skiprows=1, delimiter=" ")
+
+    training_features = data[:, :]
+
+    return training_features
