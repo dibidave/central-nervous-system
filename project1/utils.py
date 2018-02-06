@@ -64,11 +64,9 @@ def get_training_data(validation_size=0.3, onehot=1, standardize=False):
             validation_features, validation_labels)
 
 
-def get_testing_data(standardize=False):
+def get_test_data(standardize=False):
     """
     Loads the test data
-
-    :param onehot: Whether to use one hot encoding
     :param standardize: Whether to standardize the data by mu and sd of the
         training set
     :return testing_features: the feature matrix
