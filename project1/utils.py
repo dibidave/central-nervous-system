@@ -56,6 +56,18 @@ def convert_features_to_pairwise(training_feature_matrix, validation_feature_mat
     
     return pairwise_training_feature_matrix, pairwise_validation_feature_matrix
 
+def get_headers():
+    """
+    Loads the header from the training data
+    
+    :return: headers
+    """
+    file = open("data/training_data.txt")
+    headers = file.readline()
+    headers = headers.split(' ')
+    headers = headers[1:]
+    file.close()
+    return headers
 
 def get_training_data(validation_size=0.3, onehot=1, standardize=False, normalize_rows=False):
     """
