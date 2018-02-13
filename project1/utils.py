@@ -140,7 +140,7 @@ def get_training_data(validation_size=0.3, onehot=1, standardize=False, normaliz
             validation_features = numpy.divide(validation_features, SD)
 
     return (training_features, training_labels,
-            validation_features, validation_labels, words)
+            validation_features, validation_labels)
 
 
 def get_test_data(standardize=False, normalize_rows=False):
