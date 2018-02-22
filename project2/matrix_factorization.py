@@ -59,8 +59,7 @@ def train_model(Y, M, N, K, eta=0.03, reg=0., eps=0.0001, max_epochs=300):
     err0 = get_err(U, V, Y, reg)
     
     for epoch in range(max_epochs):
-        if not epoch%10:
-            print('Epoch ', epoch, ' of ', max_epochs)
+        print('Epoch', '{:>2d}'.format(epoch), end=': ')
         ids = np.random.permutation(D)
         for idx in ids:
             i = Y[idx, 0]
@@ -80,6 +79,7 @@ def train_model(Y, M, N, K, eta=0.03, reg=0., eps=0.0001, max_epochs=300):
             err_old = err
             err = get_err(U, V, Y, reg)
             derr = err_old-err
+        print('current avarage training error', '{:.3f}'.format(err/D))
         if epoch>0 and derr<=derr0*eps:
             break
     return (U, V, get_err(U, V, Y, reg=0))
