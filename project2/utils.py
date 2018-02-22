@@ -23,3 +23,14 @@ def get_movies():
                       'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 
                        'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'])
     return movie_id, movie_title, movie_genre, genres
+
+def list_to_matrix(Y, M=943, N=1682, fill=np.nan):
+    '''
+    Convert the list of rating with shape (?, 3) into a matrix of rating with shape (M, N)
+    and empty values filled with NaN by default
+    '''
+    
+    YM = np.full((M, N), fill)
+    for l in Y:
+        YM[l[0]-1, l[1]-1] = l[2]
+    return YM
