@@ -46,11 +46,10 @@ def get_err(U, V, Y, reg=0., biases=None):
     err = 0.
     for i, j, Yij in Y.tolist():
         if biases is not None:
-            err += (Yij - (np.dot(U[i - 1, :], V[j - 1, :]) +
+            err += (Yij - (np.dot(U[:, i-1], V[:, j - 1]) +
                            biases[0][i - 1] + biases[1][j - 1])) ** 2
         else:
-            err+=(Yij-np.dot(U[i-1, :], V[j-1, :]))**2
-        err+=(Yij-np.dot(U[:, i-1], V[:, j-1]))**2
+            err+=(Yij-np.dot(U[:, i-1], V[:, j - 1]))**2
     return reg/2*(np.linalg.norm(U)+np.linalg.norm(V))+1/2*err
 
 
