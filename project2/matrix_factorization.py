@@ -50,6 +50,7 @@ def get_err(U, V, Y, reg=0., biases=None):
                            biases[0][i - 1] + biases[1][j - 1])) ** 2
         else:
             err+=(Yij-np.dot(U[i-1, :], V[j-1, :]))**2
+        err+=(Yij-np.dot(U[:, i-1], V[:, j-1]))**2
     return reg/2*(np.linalg.norm(U)+np.linalg.norm(V))+1/2*err
 
 
@@ -58,8 +59,8 @@ def train_model(Y, M, N, K, eta=0.03, reg=0., eps=0.0001, max_epochs=300,
     """
     Given a training data matrix Y containing rows (i, j, Y_ij)
     where Y_ij is user i's rating on movie j, learns an
-    M x K matrix U and N x K matrix V such that rating Y_ij is approximated
-    by (UV^T)_ij.
+    K x M matrix U and K x N matrix V such that rating Y_ij is approximated
+    by (U^TV)_ij.
 
     Uses a learning rate of <eta> and regularization of <reg>. Stops after
     <max_epochs> epochs, or once the magnitude of the decrease in regularized
@@ -69,8 +70,8 @@ def train_model(Y, M, N, K, eta=0.03, reg=0., eps=0.0001, max_epochs=300,
     Returns a tuple (U, V, err) consisting of U, V, and the unregularized MSE
     of the model.
     """
-    U = np.random.uniform(-0.5, 0.5, (M, K))
-    V = np.random.uniform(-0.5, 0.5, (N, K))
+    U = np.random.uniform(-0.5, 0.5, (K, M))
+    V = np.random.uniform(-0.5, 0.5, (K, N))
     D = Y.shape[0] # Number of samples
     err0 = get_err(U, V, Y, reg)
 
@@ -89,8 +90,8 @@ def train_model(Y, M, N, K, eta=0.03, reg=0., eps=0.0001, max_epochs=300,
             i = Y[idx, 0]
             j = Y[idx, 1]
             Yij = Y[idx, 2]
-            Ui = U[i-1, :]
-            Vj = V[j-1, :]
+            Ui = U[:, i-1]
+            Vj = V[:, j-1]
             if include_bias:
                 dU = grad_U(Ui, Yij, Vj, reg, eta, biases[0][i - 1], biases[1][j - 1])
                 dV = grad_V(Vj, Yij, Ui, reg, eta, biases[0][i - 1], biases[1][j - 1])
@@ -101,8 +102,8 @@ def train_model(Y, M, N, K, eta=0.03, reg=0., eps=0.0001, max_epochs=300,
             else:
                 dU = grad_U(Ui, Yij, Vj, reg, eta)
                 dV = grad_V(Vj, Yij, Ui, reg, eta)
-            U[i - 1, :] = Ui - dU
-            V[j - 1, :] = Vj - dV
+            U[:, i-1] = Ui-dU
+            V[:, j-1] = Vj-dV
         if epoch==0:
             err_old = err0
             err = get_err(U, V, Y, reg, biases)
