@@ -112,11 +112,14 @@ def train_model(Y, M, N, K, eta=0.03, reg=0., eps=0.0001, max_epochs=300,
             err = get_err(U, V, Y, reg, biases)
             derr = err_old-err
         
-        print('current avarage training error', '{:.3f}'.format(err/D))
+        print('current average training error', '{:.3f}'.format(err/D))
         if epoch>0 and derr<=derr0*eps:
             break
 
-    return (U, V, get_err(U, V, Y, reg=0))
+    if include_bias:
+        return (U, V, biases, get_err(U, V, Y, biases=biases, reg=0))
+    else:
+        return (U, V, get_err(U, V, Y, biases=biases, reg=0))
 
 
 
