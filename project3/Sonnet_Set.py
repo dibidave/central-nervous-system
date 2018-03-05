@@ -38,6 +38,16 @@ class Sonnet_Set:
     NEW_LINE_CHARACTER = "\n"
     NEW_STANZA_CHARACTER = "_"
 
+    RHYMING_PAIRS = [
+        (0, 2),
+        (1, 3),
+        (4, 6),
+        (5, 7),
+        (8, 10),
+        (9, 11),
+        (12, 13)
+    ]
+
     def __init__(self, file_path):
 
         current_sonnet = None
@@ -120,6 +130,25 @@ class Sonnet_Set:
                             line_index == Sonnet_Set.NUM_LINES_REQUIRED - 1:
                         sequence.append(self._word_dictionary[Sonnet_Set.NEW_STANZA_CHARACTER])
                 sequences.append(sequence)
+        elif sequence_type == Sequence_Type.RHYMING_PAIR:
+            for sonnet in self._sonnets_quantized:
+                sequence = []
+
+                for rhyming_pair in Sonnet_Set.RHYMING_PAIRS:
+
+                    rhyming_pair_sequence = []
+
+                    line_1 = sonnet[rhyming_pair[0]]
+                    line_2 = sonnet[rhyming_pair[1]]
+
+                    rhyming_pair_sequence.extend(line_1)
+                    rhyming_pair_sequence.append(self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
+                    rhyming_pair_sequence.extend(line_2)
+
+                    sequence.append(rhyming_pair_sequence)
+
+                sequences.append(sequence)
+
         else:
             raise NotImplementedError()
 
@@ -149,6 +178,24 @@ class Sonnet_Set:
                 if sequence_index != len(sequence) - 1 \
                         and word != Sonnet_Set.NEW_LINE_CHARACTER:
                     sonnet_string += " "
+        elif sequence_type == Sequence_Type.RHYMING_PAIR:
+
+            sonnet_lines = [""] * len(Sonnet_Set.RHYMING_PAIRS) * 2
+
+            for sequence_index, lines in enumerate(sequence):
+
+                line_break_index = lines.index(
+                    self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
+
+                line_1 = " ".join([self._word_list[x] for x in lines[0:line_break_index]])
+                line_2 = " ".join([self._word_list[x] for x in lines[line_break_index + 1:]])
+
+                sonnet_lines[Sonnet_Set.RHYMING_PAIRS[sequence_index][0]] = \
+                    line_1
+
+                sonnet_lines[Sonnet_Set.RHYMING_PAIRS[sequence_index][1]] = \
+                    line_2
+            sonnet_string = "\n".join(sonnet_lines)
         else:
             raise NotImplementedError()
 
