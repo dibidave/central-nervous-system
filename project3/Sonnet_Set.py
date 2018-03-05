@@ -82,7 +82,10 @@ class Sonnet_Set:
                         current_sonnet = None
                         sonnet_number = None
                     else:
-                        current_sonnet.append(line.split())
+                        line_elements = line.split()
+                        line_elements[-1] = line_elements[-1][0:-1]
+                        print(line_elements)
+                        current_sonnet.append(line_elements)
 
         self._sonnets_raw = sonnets
 
@@ -165,6 +168,9 @@ class Sonnet_Set:
 
         if sequence_type == Sequence_Type.SONNET:
 
+            lines = []
+            line = []
+
             for sequence_index, word_index in enumerate(sequence):
 
                 word = self._word_list[word_index]
@@ -172,12 +178,14 @@ class Sonnet_Set:
                 # Don't do anything for new stanza characters
                 if word == Sonnet_Set.NEW_STANZA_CHARACTER:
                     continue
+                elif word == Sonnet_Set.NEW_LINE_CHARACTER:
+                    lines.append(line)
+                    line = []
+                else:
+                    line.append(self._word_list[word_index])
 
-                sonnet_string += self._word_list[word_index]
+            sonnet_string = Sonnet_Set.convert_line_arrays_to_string(lines)
 
-                if sequence_index != len(sequence) - 1 \
-                        and word != Sonnet_Set.NEW_LINE_CHARACTER:
-                    sonnet_string += " "
         elif sequence_type == Sequence_Type.RHYMING_PAIR:
 
             sonnet_lines = [""] * len(Sonnet_Set.RHYMING_PAIRS) * 2
@@ -187,16 +195,32 @@ class Sonnet_Set:
                 line_break_index = lines.index(
                     self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
 
-                line_1 = " ".join([self._word_list[x] for x in lines[0:line_break_index]])
-                line_2 = " ".join([self._word_list[x] for x in lines[line_break_index + 1:]])
+                line_1 = [self._word_list[x] for x in lines[0:line_break_index]]
+                line_2 = [self._word_list[x] for x in lines[line_break_index + 1:]]
 
                 sonnet_lines[Sonnet_Set.RHYMING_PAIRS[sequence_index][0]] = \
                     line_1
 
                 sonnet_lines[Sonnet_Set.RHYMING_PAIRS[sequence_index][1]] = \
                     line_2
-            sonnet_string = "\n".join(sonnet_lines)
+
+            sonnet_string = Sonnet_Set.convert_line_arrays_to_string(sonnet_lines)
         else:
             raise NotImplementedError()
 
         print(sonnet_string)
+
+    @staticmethod
+    def convert_line_arrays_to_string(lines):
+
+        for line_index, line in enumerate(lines):
+            lines[line_index] = " ".join(line)
+
+        stanzas = []
+
+        for line_index in range(0, 13, 4):
+            stanzas.append(",\n".join(lines[line_index:line_index + 4]))
+
+        sonnet_string = ":\n".join(stanzas) + "."
+
+        return sonnet_string
