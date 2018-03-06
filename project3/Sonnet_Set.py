@@ -48,7 +48,7 @@ class Sonnet_Set:
         (12, 13)
     ]
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, verbose = False):
 
         current_sonnet = None
         sonnet_number = None
@@ -84,7 +84,7 @@ class Sonnet_Set:
                     else:
                         line_elements = line.split()
                         line_elements[-1] = line_elements[-1][0:-1]
-                        print(line_elements)
+                        if verbose: print(line_elements)
                         current_sonnet.append(line_elements)
 
         self._sonnets_raw = sonnets
