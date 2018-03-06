@@ -204,17 +204,25 @@ class Sonnet_Set:
 
         elif sequence_type == Sequence_Type.RHYMING_PAIR:
 
+            print(sequence)
+            print("Converts to...")
+
             sonnet_lines = [""] * len(Sonnet_Set.RHYMING_PAIRS) * 2
 
             for sequence_index, lines in enumerate(sequence):
 
-                line_break_index = lines.index(
-                    self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
+                try:
+                    line_break_index = lines.index(
+                        self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
 
-                line_1 = [self._word_list[x]
-                          for x in lines[0:line_break_index]]
-                line_2 = [self._word_list[x]
-                          for x in lines[line_break_index + 1:]]
+                    line_1 = [self._word_list[x]
+                              for x in lines[0:line_break_index]]
+                    line_2 = [self._word_list[x]
+                              for x in lines[line_break_index + 1:]]
+                except ValueError:
+                    midpoint = int(len(lines)/2)
+                    line_1 = [self._word_list[x] for x in lines[0:midpoint]]
+                    line_2 = [self._word_list[x] for x in lines[midpoint:]]
 
                 sonnet_lines[Sonnet_Set.RHYMING_PAIRS[sequence_index][0]] = \
                     line_1
