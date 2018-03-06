@@ -1,6 +1,4 @@
-
 from enum import Enum
-from copy import deepcopy
 
 
 # Different methods for representing sequences in sonnets.
@@ -69,13 +67,16 @@ class Sonnet_Set:
                             sonnet_number = int(line)
                             current_sonnet = []
                         except ValueError:
-                            raise Exception("Failed to extract sonnet number, something is wrong")
+                            raise Exception("Failed to extract sonnet \
+                                number, something is wrong")
                 else:
                     if len(line) == 0:
                         if Sonnet_Set.NUM_LINES_REQUIRED is not None and \
-                                len(current_sonnet) != Sonnet_Set.NUM_LINES_REQUIRED:
+                                len(current_sonnet) != \
+                                Sonnet_Set.NUM_LINES_REQUIRED:
                             print("Sonnet %i is not %i lines, skipping" %
-                                  (sonnet_number, Sonnet_Set.NUM_LINES_REQUIRED))
+                                  (sonnet_number,
+                                   Sonnet_Set.NUM_LINES_REQUIRED))
                         else:
                             sonnets.append(current_sonnet)
                             self._sonnet_numbers.append(sonnet_number)
@@ -108,11 +109,13 @@ class Sonnet_Set:
             self._sonnets_quantized.append(sonnet_quantized)
 
         # We add a special word to indicate a new line
-        self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER] = len(self._word_list)
+        self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER] = \
+            len(self._word_list)
         self._word_list.append(Sonnet_Set.NEW_LINE_CHARACTER)
 
         # And another to indicate the end of a stanza
-        self._word_dictionary[Sonnet_Set.NEW_STANZA_CHARACTER] = len(self._word_list)
+        self._word_dictionary[Sonnet_Set.NEW_STANZA_CHARACTER] = \
+            len(self._word_list)
         self._word_list.append(Sonnet_Set.NEW_STANZA_CHARACTER)
 
     def get_sequences(self, sequence_type=Sequence_Type.SONNET,
@@ -128,10 +131,13 @@ class Sonnet_Set:
                 sequence = []
                 for line_index, line in enumerate(sonnet):
                     sequence.extend(line)
-                    sequence.append(self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
+                    sequence.append(
+                        self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
                     if (line_index + 1) % 4 == 0 or \
                             line_index == Sonnet_Set.NUM_LINES_REQUIRED - 1:
-                        sequence.append(self._word_dictionary[Sonnet_Set.NEW_STANZA_CHARACTER])
+                        sequence.append(
+                            self._word_dictionary[
+                                Sonnet_Set.NEW_STANZA_CHARACTER])
                 sequences.append(sequence)
         elif sequence_type == Sequence_Type.RHYMING_PAIR:
             for sonnet in self._sonnets_quantized:
@@ -145,13 +151,23 @@ class Sonnet_Set:
                     line_2 = sonnet[rhyming_pair[1]]
 
                     rhyming_pair_sequence.extend(line_1)
-                    rhyming_pair_sequence.append(self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
+                    rhyming_pair_sequence.append(
+                        self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
                     rhyming_pair_sequence.extend(line_2)
 
                     sequence.append(rhyming_pair_sequence)
 
                 sequences.append(sequence)
+        elif sequence_type == Sequence_Type.LINE:
 
+            sequences = []
+
+            for sonnet in self._sonnets_quantized:
+                lines = []
+
+                for line in sonnet:
+                    lines.append(line[:])
+                sequences.append(lines)
         else:
             raise NotImplementedError()
 
@@ -195,8 +211,10 @@ class Sonnet_Set:
                 line_break_index = lines.index(
                     self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
 
-                line_1 = [self._word_list[x] for x in lines[0:line_break_index]]
-                line_2 = [self._word_list[x] for x in lines[line_break_index + 1:]]
+                line_1 = [self._word_list[x]
+                          for x in lines[0:line_break_index]]
+                line_2 = [self._word_list[x]
+                          for x in lines[line_break_index + 1:]]
 
                 sonnet_lines[Sonnet_Set.RHYMING_PAIRS[sequence_index][0]] = \
                     line_1
@@ -204,7 +222,15 @@ class Sonnet_Set:
                 sonnet_lines[Sonnet_Set.RHYMING_PAIRS[sequence_index][1]] = \
                     line_2
 
-            sonnet_string = Sonnet_Set.convert_line_arrays_to_string(sonnet_lines)
+            sonnet_string = Sonnet_Set.convert_line_arrays_to_string(
+                sonnet_lines)
+        elif sequence_type == Sequence_Type.LINE:
+
+            lines = []
+
+            for line in sequence:
+                lines.append([self._word_list[x] for x in line])
+            sonnet_string = Sonnet_Set.convert_line_arrays_to_string(lines)
         else:
             raise NotImplementedError()
 
