@@ -1,39 +1,3 @@
-########################################
-# CS/CNS/EE 155 2018
-# Problem Set 6
-#
-# Author:       Andrew Kang
-# Description:  Set 6 skeleton code
-########################################
-
-# You can use this (optional) skeleton code to complete the HMM
-# implementation of set 5. Once each part is implemented, you can simply
-# execute the related problem scripts (e.g. run 'python 2G.py') to quickly
-# see the results from your code.
-#
-# Some pointers to get you started:
-#
-#     - Choose your notation carefully and consistently! Readable
-#       notation will make all the difference in the time it takes you
-#       to implement this class, as well as how difficult it is to debug.
-#
-#     - Read the documentation in this file! Make sure you know what
-#       is expected from each function and what each variable is.
-#
-#     - Any reference to "the (i, j)^th" element of a matrix T means that
-#       you should use T[i][j].
-#
-#     - Note that in our solution code, no NumPy was used. That is, there
-#       are no fancy tricks here, just basic coding.s If you understand HMMs
-#       to a thorough extent, the rest of this implementation should come
-#       naturally. However, if you'd like to use NumPy, feel free to.
-#
-#     - Take one step at a time! Move onto the next algorithm to implement
-#       only if you're absolutely sure that all previous algorithms are
-#       correct. We are providing you waypoints for this reason.
-#
-# To get started, just fill in code where indicated. Best of luck!
-
 import random
 import math
 
@@ -42,7 +6,7 @@ class HiddenMarkovModel:
     Class implementation of Hidden Markov Models.
     '''
 
-    def __init__(self, A=None, O=None, L=None, D=None, A_start=None, X=None, Y=None, train=True, N_iters=1000, verbose=False):
+    def __init__(self, A=None, O=None, L=None, D=None, A_start=None, X=None, Y=None, train=True, N_iters=100, verbose=False):
         '''
         Initializes an HMM. Assumes the following:
             - States and observations are integers starting from 0. 
@@ -105,9 +69,11 @@ class HiddenMarkovModel:
             # Randomly initialize and normalize matrix A.
             A = [[random.random() for _ in range(L)] for _ in range(L)]
             A = [[j/sum(i) for j in i] for i in A]
+            self.A = A
             # Randomly initialize and normalize matrix O.
             O = [[random.random() for _ in range(D)] for _ in range(L)]
             O = [[j/sum(i) for j in i] for i in O]
+            self.O = O
         elif A is not None and O is not None:
             self.L = len(A)
             self.D = len(O[0])
@@ -126,8 +92,9 @@ class HiddenMarkovModel:
             self.A_start = A_start
         else:
             self.A_start = [1. / self.L for _ in range(self.L)]
-        self.A_log = [[math.log(x) if x>0 else -float('inf') for x in y] for y in self.A]
-        self.O_log = [[math.log(x) if x>0 else -float('inf') for x in y] for y in self.O]
+        if self.A is None and self.O is None:
+            self.A_log = [[math.log(x) if x>0 else -float('inf') for x in y] for y in self.A]
+            self.O_log = [[math.log(x) if x>0 else -float('inf') for x in y] for y in self.O]
         self.A_start_log = [math.log(x) if x>0 else -float('inf') for x in self.A_start]
         
         # Train the model
@@ -152,7 +119,7 @@ class HiddenMarkovModel:
             max_seq:    State sequence corresponding to x with the highest
                         probability.
         '''
-
+        
         M = len(x)      # Length of sequence.
 
         # The (i, j)^th elements of probs and seqs are the max log probability
@@ -399,7 +366,7 @@ class HiddenMarkovModel:
             return None
 
 
-    def unsupervised_learning(self, X, N_iters, verbose=False):
+    def unsupervised_learning(self, X, N_iters=100, verbose=False):
         '''
         Trains the HMM using the Baum-Welch algorithm on an unlabeled
         datset X. Note that this method updates the attributes of the HMM
