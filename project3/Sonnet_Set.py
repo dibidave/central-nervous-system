@@ -1,5 +1,5 @@
 from enum import Enum
-
+import re
 
 # Different methods for representing sequences in sonnets.
 class Sequence_Type(Enum):
@@ -57,7 +57,7 @@ class Sonnet_Set:
         with open(file_path, "r") as sonnets_file:
 
             for line in sonnets_file:
-                line = line.strip()
+                line = line.strip("\r\n,.:;?!()'")
 
                 if current_sonnet is None:
                     if len(line) == 0:
@@ -83,8 +83,24 @@ class Sonnet_Set:
                         current_sonnet = None
                         sonnet_number = None
                     else:
+                        # Convert to lowercase! Remove all commas, periods, question marks etc.!
+                        line = line.lower()
+                        line = re.sub("[,.:;?!()]", "", line)
+                        # Remove ' at the begining and end of a word
+                        line = line.replace(" '", " ")
+                        line = line.replace("' ", " ")
+                        # Restore some specific cases
+                        line = re.sub(r"([\s^])t\b", r"\1t'", line)
+                        line = re.sub(r"\bth\b", r"th'", line)
+                        line = re.sub(r"\btis\b", r"'tis", line)
+                        line = re.sub(r"\bgainst\b", r"'gainst", line)
+                        line = re.sub(r"\btwixt\b", r"'twixt", line)
+                        line = re.sub(r"\bscaped\b", r"'scaped", line)
+                        line = re.sub(r"\bgreeing\b", r"'greeing", line)
+                        
                         line_elements = line.split()
-                        line_elements[-1] = line_elements[-1][0:-1]
+                        if "lovet'" in line_elements:
+                            print(line)
                         if verbose: print(line_elements)
                         current_sonnet.append(line_elements)
 
@@ -117,6 +133,16 @@ class Sonnet_Set:
         self._word_dictionary[Sonnet_Set.NEW_STANZA_CHARACTER] = \
             len(self._word_list)
         self._word_list.append(Sonnet_Set.NEW_STANZA_CHARACTER)
+        
+        # Add number of syllables
+        if file_path=="data/shakespeare.txt":
+            syllable_file_path = 'data/Syllable_dictionary.txt'
+            self._syllable_dictionary = {}.fromkeys(self._word_list)
+            with open(syllable_file_path, 'r') as syllable_file:
+                for line in syllable_file:
+                    line = line.strip().split(' ')
+                    self._syllable_dictionary[line[0]] = line[1:]
+            self._syllabel_list = [self._syllable_dictionary[word] for word in self._word_list]
         
     def get_sequences(self, sequence_type=Sequence_Type.SONNET,
                       element_type=Element_Type.WORD):
@@ -190,7 +216,10 @@ class Sonnet_Set:
             for sequence_index, word_index in enumerate(sequence):
 
                 word = self._word_list[word_index]
-
+                # Capitalize if it's the first word of a line
+                if not line:
+                    word = word.capitalize()
+                
                 # Don't do anything for new stanza characters
                 if word == Sonnet_Set.NEW_STANZA_CHARACTER:
                     continue
@@ -248,7 +277,7 @@ class Sonnet_Set:
     def convert_line_arrays_to_string(lines):
 
         for line_index, line in enumerate(lines):
-            lines[line_index] = " ".join(line)
+            lines[line_index] = " ".join(line).capitalize() # Capitalize the first letter!
 
         stanzas = []
 
