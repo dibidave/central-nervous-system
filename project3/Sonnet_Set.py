@@ -117,6 +117,9 @@ class Sonnet_Set:
         self._word_dictionary[Sonnet_Set.NEW_STANZA_CHARACTER] = \
             len(self._word_list)
         self._word_list.append(Sonnet_Set.NEW_STANZA_CHARACTER)
+        
+        # Add a reverse dictionary for indices
+        self._index_dictionary = {v:k for k, v in self._word_dictionary.items()}
 
     def get_sequences(self, sequence_type=Sequence_Type.SONNET,
                       element_type=Element_Type.WORD):
