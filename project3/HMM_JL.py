@@ -278,6 +278,9 @@ class HiddenMarkovModel:
 
             YA:         Marginal transition matrix with dimensions M-1 x L x L.
                         The (i, j, k)^th element is P(y^i+1=j, y^i+2=k, x)
+
+            YA_start:   Marginal starting transition matrix with dimensions L.
+                        The (j)^th element is P(y^0=start, y^1=j, x)
         '''
         
         M = len(x)      # Length of sequence.
@@ -288,7 +291,18 @@ class HiddenMarkovModel:
         YO = [[0. for _ in range(self.L)] for _ in range(M)]
         YA = [[[0. for _ in range(self.L)] for _ in range(self.L)] \
             for _ in range(M-1)]
+        YA_start = [0. for _ in range(self.L)]
         
+        # Calculate YA_start
+        for i in range(1): # First position in the sequence
+            sum_ya_start = 0.
+            for j in range(self.L): # Current state
+                YA_start[j] = betas[i][j]*self.A_start[j]*self.O[j][x[i]]
+                sum_ya_start += YA_start[j]
+            for j in range(self.L): # Current state
+                YA_start[j] /= sum_ya_start
+        
+        # Calculate YA and YO
         for i in range(M-1): # Current position in the sequence
             sum_yo = 0.
             sum_ya = 0.
@@ -311,7 +325,7 @@ class HiddenMarkovModel:
             for j in range(self.L): # Current state
                 YO[i][j] /= sum_yo
         
-        return YO, YA
+        return YO, YA, YA_start
         
     
     def supervised_learning(self, X, Y, verbose=False):
@@ -334,26 +348,33 @@ class HiddenMarkovModel:
 
                         Note that the elements in X line up with those in Y.
         '''
-
+        
+        N = len(X)
         O_num = [[0. for _ in range(self.D)] for _ in range(self.L)]
         O_den = [0. for _ in range(self.L)]
         A_num = [[0. for _ in range(self.L)] for _ in range(self.L)]
         A_den = [0. for _ in range(self.L)]
+        A_start_num = [0. for _ in range(self.L)]
+        A_start_den = float(N)
         
-        for i in range(len(X)): # Input sequence
-            for j in range(len(X[i])-1): # Token in the sequence
+        for i in range(N): # Input sequence
+            M_i = len(X[i])
+            # We observed start -> Y[i][0]
+            A_start_num[Y[i][0]] += 1
+            for j in range(M_i-1): # Token in the sequence
                 # We observed Y[i][j] -> X[i][j] and Y[i][j] -> Y[i][j+1]
                 O_den[Y[i][j]] += 1
                 O_num[Y[i][j]][X[i][j]] += 1
                 A_den[Y[i][j]] += 1
                 A_num[Y[i][j]][Y[i][j+1]] += 1
-            for j in range(len(X[i])-1, len(X[i])): # Last token in the sequence
+            for j in range(M_i-1, M_i): # Last token in the sequence
                 # We observed Y[i][j] -> X[i][j]
                 O_den[Y[i][j]] += 1
                 O_num[Y[i][j]][X[i][j]] += 1
         
         self.O = [[xi/y if y!=0 else float('nan') for xi in x] for x, y in zip(O_num, O_den)]
         self.A = [[xi/y if y!=0 else float('nan') for xi in x] for x, y in zip(A_num, A_den)]
+        self.A_start = [xi/A_start_den for xi in A_start_num]
         
         if verbose:
             probs = 0.
@@ -390,14 +411,21 @@ class HiddenMarkovModel:
             probs_iter = [0. for _ in range(N_iters)]
         
         for n_iter in range(N_iters):
+            N = len(X)
             A_num = [[0. for _ in range(self.L)] for _ in range(self.L)]
             A_den = [0. for _ in range(self.L)]
             O_num = [[0. for _ in range(self.D)] for _ in range(self.L)]
             O_den = [0. for _ in range(self.L)]
-            for n in range(len(X)): # Input sequence
+            A_start_num = [0. for _ in range(self.L)]
+            A_start_den = float(N)
+            for n in range(N): # Input sequence
                 x = X[n]
-                YO, YA = self.marginal(x)
-                for i in range(len(x)-1): # Token in the sequence
+                M_n = len(x)
+                YO, YA, YA_start = self.marginal(x)
+                for j in range(self.L): # Possible state of the first token
+                    # We observed start -> j with probability YA_start[j]
+                    A_start_num[j] += YA_start[j]
+                for i in range(M_n-1): # Token in the sequence
                     for j in range(self.L): # Possible state of the current token
                         # We observed j -> x[i] with probability YO[i][j]
                         O_den[j] += YO[i][j]
@@ -406,7 +434,7 @@ class HiddenMarkovModel:
                             # We observed j -> k with probability YA[i][j][k]
                             A_den[j] += YA[i][j][k]
                             A_num[j][k] += YA[i][j][k]
-                for i in range(len(x)-1, len(x)): # Last token in the sequence
+                for i in range(M_n-1, M_n): # Last token in the sequence
                     for j in range(self.L): # Possible state of the current token
                         # We observed j -> x[i] with probability YO[i][j]
                         O_den[j] += YO[i][j]
@@ -415,13 +443,17 @@ class HiddenMarkovModel:
                        for x, y in zip(O_num, O_den)]
             self.A = [[xi/y if y!=0 else float('nan') for xi in x] \
                        for x, y in zip(A_num, A_den)]
+            self.A_start = [xi/A_start_den for xi in A_start_num]
             
             if verbose:
                 for i in range(len(X)): # Input sequence
                     x = X[i]
                     probs_iter[n_iter] += math.log(self.probability_alphas(x))
                 print('Training epoch {} of {}: current log probability = {:.4e}'.\
-                      format(n_iter, N_iters, probs_iter[n_iter]), end='\r')
+                      format(n_iter+1, N_iters, probs_iter[n_iter]), end='\r')
+            else:
+                print('Training epoch {} of {}.'.format(n_iter+1, N_iters), end='\r')
+        
         print()
         if verbose:
             return probs_iter
