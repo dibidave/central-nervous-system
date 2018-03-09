@@ -46,7 +46,7 @@ class Sonnet_Set:
         (12, 13)
     ]
 
-    def __init__(self, file_path, verbose = False):
+    def __init__(self, file_path="data/shakespeare.txt", verbose = False):
 
         current_sonnet = None
         sonnet_number = None
@@ -137,13 +137,50 @@ class Sonnet_Set:
         # Add number of syllables
         if file_path=="data/shakespeare.txt":
             syllable_file_path = 'data/Syllable_dictionary.txt'
-            self._syllable_dictionary = {}.fromkeys(self._word_list)
+            self._syllable_dictionary = {}.fromkeys(self._word_list[:-2])
             with open(syllable_file_path, 'r') as syllable_file:
                 for line in syllable_file:
                     line = line.strip().split(' ')
                     self._syllable_dictionary[line[0]] = line[1:]
-            self._syllabel_list = [self._syllable_dictionary[word] for word in self._word_list]
+            self._syllable_list = [self._syllable_dictionary[word] for word in self._word_list[:-2]]
+            self._syllable_list_num =\
+                [[int(n) if n.isdigit() else int(n[1:]) for n in l] for l in self._syllable_list]
+            self._syllable_list_num_noend =\
+                [[int(n) for n in l if n.isdigit()] for l in self._syllable_list]
+            self._syllable_list_num_max = [max(l) for l in self._syllable_list_num]
+            self._syllable_list_num_min = [min(l) for l in self._syllable_list_num]
         
+        # Add rhyming words
+        sonnet_sequences = self.get_sequences(Sequence_Type.RHYMING_PAIR, Element_Type.WORD)
+        self._rhyme_dictionary = {}
+        self._rhyme_pairs = []
+        nl = self._word_dictionary[self.NEW_LINE_CHARACTER]
+        for sonnet in sonnet_sequences:
+            for rhyming_pair in sonnet:
+                idx = rhyming_pair.index(nl)
+                rhyme1 = rhyming_pair[idx-1]
+                rhyme2 = rhyming_pair[-1]
+                if rhyme1 not in self._rhyme_dictionary.keys()\
+                    and rhyme2 not in self._rhyme_dictionary.keys():
+                    self._rhyme_dictionary[rhyme1] = len(self._rhyme_pairs)
+                    self._rhyme_dictionary[rhyme2] = len(self._rhyme_pairs)
+                    self._rhyme_pairs.append([rhyme1, rhyme2])
+                elif rhyme1 in self._rhyme_dictionary.keys()\
+                    and rhyme2 in self._rhyme_dictionary.keys():
+                    continue
+                elif rhyme1 in self._rhyme_dictionary.keys():
+                    idx = self._rhyme_dictionary[rhyme1]
+                    self._rhyme_dictionary[rhyme2] = idx
+                    self._rhyme_pairs[idx].append(rhyme2)
+                else:
+                    idx = self._rhyme_dictionary[rhyme2]
+                    self._rhyme_dictionary[rhyme1] = idx
+                    self._rhyme_pairs[idx].append(rhyme1)
+        self._rhyme_pairs_string =\
+            [[self._word_list[idx] for idx in pairs] for pairs in self._rhyme_pairs]
+        self._if_word_rhymes = [1 if word in self._rhyme_dictionary.keys() else 0 \
+                                for word in range(len(self._word_list)-2)]
+    
     def get_sequences(self, sequence_type=Sequence_Type.SONNET,
                       element_type=Element_Type.WORD):
 
@@ -201,7 +238,7 @@ class Sonnet_Set:
 
     # Print a sonnet, given a certain sequence and element encoding scheme
     def print_sonnet(self, sequence, sequence_type=Sequence_Type.SONNET,
-                     element_type=Element_Type.WORD):
+                     element_type=Element_Type.WORD, print_output=True):
 
         if element_type == Element_Type.PHONEME:
             raise NotImplementedError()
@@ -270,14 +307,18 @@ class Sonnet_Set:
             sonnet_string = Sonnet_Set.convert_line_arrays_to_string(lines)
         else:
             raise NotImplementedError()
-
-        print(sonnet_string)
+        
+        if print_output:
+            print(sonnet_string)
+        return sonnet_string
 
     @staticmethod
     def convert_line_arrays_to_string(lines):
 
         for line_index, line in enumerate(lines):
             lines[line_index] = " ".join(line).capitalize() # Capitalize the first letter!
+            if line_index in [12, 13]:
+                lines[line_index] = "  "+lines[line_index]
 
         stanzas = []
 
