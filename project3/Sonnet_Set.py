@@ -316,7 +316,9 @@ class Sonnet_Set:
     def convert_line_arrays_to_string(lines):
 
         for line_index, line in enumerate(lines):
-            lines[line_index] = " ".join(line).capitalize() # Capitalize the first letter!
+            line_string = " ".join(line)
+            line_string = line_string[0].upper()+line_string[1:] # Capitalize!
+            lines[line_index] = line_string
             if line_index in [12, 13]:
                 lines[line_index] = "  "+lines[line_index]
 
