@@ -51,6 +51,8 @@ class HiddenMarkovModel:
         '''
         
         # Read the parameters from data, if provided
+        self.X = X
+        self.Y = Y
         if D is None and X is not None:
             observations = set()
             for x in X:
@@ -409,6 +411,12 @@ class HiddenMarkovModel:
         
         if verbose:
             probs_iter = [0. for _ in range(N_iters)]
+            probs_start = 0
+            for i in range(len(X)): # Input sequence
+                x = X[i]
+                probs_start += math.log(self.probability_alphas(x))
+            print('Training start: initial log probability = {:.4e}'.\
+                  format(probs_start))
         
         for n_iter in range(N_iters):
             N = len(X)
