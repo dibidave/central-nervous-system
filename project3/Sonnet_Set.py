@@ -25,6 +25,7 @@ class Element_Type(Enum):
 
     WORD = 1
     PHONEME = 2
+    CHARACTER = 3
 
 
 class Sonnet_Set:
@@ -35,6 +36,7 @@ class Sonnet_Set:
 
     NEW_LINE_CHARACTER = "\n"
     NEW_STANZA_CHARACTER = "_"
+    SPACE_CHARACTER = " "
 
     RHYMING_PAIRS = [
         (0, 2),
@@ -108,6 +110,8 @@ class Sonnet_Set:
 
         self._word_dictionary = {}
         self._word_list = []
+        self._character_dictionary = {}
+        self._character_list = []
 
         self._sonnets_quantized = []
 
@@ -121,6 +125,10 @@ class Sonnet_Set:
                         self._word_list.append(word)
                     word_index = self._word_dictionary[word]
                     line_quantized.append(word_index)
+                    for character in word:
+                        if character not in self._character_dictionary:
+                            self._character_dictionary[character] = len(self._character_dictionary)
+                            self._character_list.append(character)
                 sonnet_quantized.append(line_quantized)
             self._sonnets_quantized.append(sonnet_quantized)
 
@@ -128,11 +136,23 @@ class Sonnet_Set:
         self._word_dictionary[Sonnet_Set.NEW_LINE_CHARACTER] = \
             len(self._word_list)
         self._word_list.append(Sonnet_Set.NEW_LINE_CHARACTER)
+        
+        self._character_dictionary[Sonnet_Set.NEW_LINE_CHARACTER] = \
+            len(self._character_list)
+        self._character_list.append(Sonnet_Set.NEW_LINE_CHARACTER)
 
         # And another to indicate the end of a stanza
         self._word_dictionary[Sonnet_Set.NEW_STANZA_CHARACTER] = \
             len(self._word_list)
         self._word_list.append(Sonnet_Set.NEW_STANZA_CHARACTER)
+        
+        self._character_dictionary[Sonnet_Set.NEW_STANZA_CHARACTER] = \
+            len(self._character_list)
+        self._character_list.append(Sonnet_Set.NEW_STANZA_CHARACTER)
+        
+        self._character_dictionary[Sonnet_Set.SPACE_CHARACTER] = \
+            len(self._character_list)
+        self._character_list.append(Sonnet_Set.SPACE_CHARACTER)
         
         # Add number of syllables
         if file_path=="data/shakespeare.txt":
@@ -188,8 +208,20 @@ class Sonnet_Set:
 
         if element_type == Element_Type.PHONEME:
             raise NotImplementedError()
-
-        if sequence_type == Sequence_Type.SONNET:
+        elif element_type == Element_Type.CHARACTER:
+            if sequence_type == Sequence_Type.SONNET:
+                for sonnet in self._sonnets_quantized:
+                    sequence = []
+                    for line_index, line in enumerate(sonnet):
+                        for word_index, word_number in enumerate(line):
+                            word = self._word_list[word_number]
+                            for character in word:
+                                sequence.append(self._character_dictionary[character])
+                            if word_index != len(line) - 1:
+                                sequence.append(self._character_dictionary[Sonnet_Set.SPACE_CHARACTER])
+                        sequence.append(self._character_dictionary[Sonnet_Set.NEW_LINE_CHARACTER])
+                    sequences.append(sequence)
+        elif sequence_type == Sequence_Type.SONNET:
             for sonnet in self._sonnets_quantized:
                 sequence = []
                 for line_index, line in enumerate(sonnet):
@@ -239,13 +271,35 @@ class Sonnet_Set:
     # Print a sonnet, given a certain sequence and element encoding scheme
     def print_sonnet(self, sequence, sequence_type=Sequence_Type.SONNET,
                      element_type=Element_Type.WORD, print_output=True):
+        
+        sonnet_string = ""
 
         if element_type == Element_Type.PHONEME:
             raise NotImplementedError()
-
-        sonnet_string = ""
-
-        if sequence_type == Sequence_Type.SONNET:
+        elif element_type == Element_Type.CHARACTER:
+            if sequence_type == Sequence_Type.SONNET:
+                is_new_line = True
+                line_index = 0
+                for character_index in sequence:
+                    character = self._character_list[character_index]
+                    if is_new_line:
+                        character = character.upper()
+                        if line_index in [12, 13]:
+                            sonnet_string += "  "
+                        is_new_line = False
+                    if character == Sonnet_Set.NEW_LINE_CHARACTER:
+                        is_new_line = True
+                        if line_index in [3, 7, 11]:
+                            sonnet_string += ":"
+                        elif line_index == 13:
+                            sonnet_string += "."
+                        else:
+                            sonnet_string += ","
+                        line_index += 1
+                    sonnet_string += character
+            else:
+                raise NotImplementedError()
+        elif sequence_type == Sequence_Type.SONNET:
 
             lines = []
             line = []
