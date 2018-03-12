@@ -6,6 +6,7 @@
 # Description:  Set 6 HMM helper
 ########################################
 
+import random
 import re
 import numpy as np
 import matplotlib.pyplot as plt
@@ -51,7 +52,10 @@ def text_to_wordcloud(text, max_words=50, title='', show=True):
 
     return wordcloud
 
-def states_to_wordclouds(hmm, obs_map, max_words=50, show=True):
+def states_to_wordclouds(hmm, obs_map, max_words=50, show=True, alt=False):
+    if alt: # Alternative without emission
+        return states_to_wordclouds2(hmm, obs_map, max_words=50, show=True)
+    
     # Initialize.
     M = 100000
     n_states = len(hmm.A)
@@ -66,6 +70,33 @@ def states_to_wordclouds(hmm, obs_map, max_words=50, show=True):
     obs_count = []
     for i in range(n_states):
         obs_lst = np.array(emission)[np.where(np.array(states) == i)[0]]
+        obs_count.append(obs_lst)
+
+    # For each state, convert it into a wordcloud.
+    for i in range(n_states):
+        obs_lst = obs_count[i]
+        if len(obs_lst)==0:
+            continue
+        sentence = [obs_map_r[j] for j in obs_lst]
+        sentence_str = ' '.join(sentence)
+
+        wordclouds.append(text_to_wordcloud(sentence_str, max_words=max_words, title='State %d' % i, show=show))
+
+    return wordclouds
+
+def states_to_wordclouds2(hmm, obs_map, max_words=50, show=True):
+    # Initialize.
+    M = 10000
+    n_states = len(hmm.A)
+    obs_all = list(range(hmm.D))
+    obs_map_r = obs_map_reverser(obs_map)
+    wordclouds = []
+
+    # For each state, get a list of observations that have been emitted
+    # from that state.
+    obs_count = []
+    for i in range(n_states):
+        obs_lst = random.choices(obs_all, weights=hmm.O[i], k=M)
         obs_count.append(obs_lst)
 
     # For each state, convert it into a wordcloud.
@@ -153,7 +184,7 @@ def visualize_sparsities(hmm, O_max_cols=50, O_vmax=0.1):
 # HMM ANIMATION FUNCTIONS
 ####################
 
-def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1):
+def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1, alt=False):
     # Parameters.
     lim = 1200
     text_x_offset = 40
@@ -170,7 +201,7 @@ def animate_emission(hmm, obs_map, M=8, height=12, width=12, delay=1):
     # Initialize.
     n_states = len(hmm.A)
     obs_map_r = obs_map_reverser(obs_map)
-    wordclouds = states_to_wordclouds(hmm, obs_map, max_words=20, show=False)
+    wordclouds = states_to_wordclouds(hmm, obs_map, max_words=20, show=False, alt=alt)
 
     # Initialize plot.    
     fig, ax = plt.subplots()

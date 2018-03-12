@@ -216,3 +216,24 @@ class Sonnet_HMM(HMM, Sonnet_Set):
             return sonnet, sonnet_string, states, N_syllables
         else:
             return sonnet, sonnet_string
+
+    def generate_haiku(self, N_syllables_line=(5, 7, 5), verbose=False):
+        states = []
+        haiku = []
+        N_syllables = []
+        haiku_string = ""
+        
+        for k in N_syllables_line:
+            line_quantized, line, states_k, N_syllables_k = \
+            self.generate_line(verbose=True, N_syllables_max=k)
+            haiku.append(line_quantized)
+            states.append(states_k)
+            haiku_string += line+"\n"
+            N_syllables.append(N_syllables_k)
+        
+        haiku_string = haiku_string[:-1]
+        
+        if verbose:
+            return haiku, haiku_string, states, N_syllables
+        else:
+            return haiku, haiku_string
