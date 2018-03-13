@@ -169,6 +169,8 @@ class Sonnet_Set:
                 [[int(n) for n in l if n.isdigit()] for l in self._syllable_list]
             self._syllable_list_num_max = [max(l) for l in self._syllable_list_num]
             self._syllable_list_num_min = [min(l) for l in self._syllable_list_num]
+            if verbose:
+                print(self._syllable_list_num)
         
         # Add rhyming words
         sonnet_sequences = self.get_sequences(Sequence_Type.RHYMING_PAIR, Element_Type.WORD)
@@ -365,6 +367,16 @@ class Sonnet_Set:
         if print_output:
             print(sonnet_string)
         return sonnet_string
+    
+    def convert_string_to_indices(self, sequence, element_type=Element_Type.CHARACTER):
+        
+        index_array = []
+        
+        if element_type == Element_Type.CHARACTER:
+            for character in sequence:
+                index_array.append(self._character_dictionary[character])
+        
+        return index_array
 
     @staticmethod
     def convert_line_arrays_to_string(lines):
