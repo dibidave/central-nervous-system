@@ -95,10 +95,10 @@ class Sonnet_HMM(HMM, Sonnet_Set):
         
         while N_syllables_sum<N_syllables_max:
             N_syllables_left = N_syllables_max-N_syllables_sum
-            # print("Current sequence:", line_quantized)
-            # print(N_syllables_left, "syllables left")
+#             print("Current sequence:", line_quantized)
+#             print(N_syllables_left, "syllables left")
             if N_syllables_left>end_syllable_num_max:
-                # print("We can't end the line now")
+#                 print("We can't end the line now")
                 # We can't end the line now
                 state = random.choices(state_all, weights=self.A[states[-1]])[0]
                 weights = [o if n<=N_syllables_left else 0 \
@@ -112,18 +112,18 @@ class Sonnet_HMM(HMM, Sonnet_Set):
                 N_syllables.append(n_syllables)
                 N_syllables_sum += n_syllables
             elif N_syllables_left>=end_syllable_num_min:
-                # print("We can end the line now!")
+#                 print("We can end the line now!")
                 # We can end the line now!
                 for state in state_all_shuffle:
-                    # print("Trying state", state)
+#                     print("Trying state", state)
                     if self.A[states[-1]][state]==0:
-                        # print("Impossible transition")
+#                         print("Impossible transition")
                         continue
                     weights = [self.O[state][k] if (flag and N_syllables_left in syl) \
                                else 0 for k, flag, syl in \
                                zip(obs_all, if_end_with, self._syllable_list_num)]
                     if sum(weights)==0:
-                        # print("Impossible observation")
+#                         print("Impossible observation")
                         continue
                     obs = random.choices(obs_all, weights=weights)[0]
                     states.append(state)
@@ -132,12 +132,14 @@ class Sonnet_HMM(HMM, Sonnet_Set):
                     N_syllables_sum += N_syllables_left
                     break
             else:
-                # print("No space for the last word, start over")
+#                 print("No space for the last word, start over")
                 # No space for the last word, start over
                 states = states[0:1]
                 line_quantized = line_quantized[0:1]
                 N_syllables = N_syllables[0:1]
                 N_syllables_sum = N_syllables[0]
+#         print("Completed!")
+#         print("Current sequence:", line_quantized)
         
         line = ' '.join([self._word_list[k] for k in line_quantized]).capitalize()
         
