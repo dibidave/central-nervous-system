@@ -107,7 +107,58 @@ class HiddenMarkovModel:
                 self.unsupervised_learning(X, N_iters, verbose)
             
         
+    def load_model(self, fn="data/hmm.txt"):
+        '''
+        Load the file fn with a saved model.
+        '''
+        A = []
+        O = []
+        try:
+            with open(fn, "r") as f:
+                # Read the parameters.
+                L, D = [int(x) for x in f.readline().strip().split('\t')]
+                # Read the start transition matrix.
+                A_start = [float(x) for x in f.readline().strip().split('\t')]
+                # Read the transition matrix.
+                for i in range(L):
+                    A.append([float(x) for x in f.readline().strip().split('\t')])
+                # Read the observation matrix.
+                for i in range(L):
+                    O.append([float(x) for x in f.readline().strip().split('\t')])
+                self.L = L
+                self.D = D
+                self.A = A
+                self.A_start = A_start
+                self.O = O
+        except:
+            print("Loading failed!")
+            raise
 
+    
+    def save_model(self, fn="data/hmm.txt"):
+        '''
+        Save to the file fn a trained model.
+        '''
+        try:
+            with open(fn, "w") as f:
+                # Write the parameters.
+                f.write("{:d}\t{:d}\n".format(self.L, self.D))
+                # Write the start transition matrix.
+                A_start = ["{:.8e}".format(x) for x in self.A_start]
+                f.write("\t".join(A_start)+"\n")
+                # Write the transition matrix.
+                for i in range(self.L):
+                    A = ["{:.8e}".format(x) for x in self.A[i]]
+                    f.write("\t".join(A)+"\n")
+                # Write the observation matrix.
+                for i in range(self.L):
+                    O = ["{:.8e}".format(x) for x in self.O[i]]
+                    f.write("\t".join(O)+"\n")
+        except:
+            print("Writing failed!")
+            raise
+
+    
     def viterbi(self, x, verbose=False):
         '''
         Uses the Viterbi algorithm to find the max probability state 
